@@ -1,0 +1,35 @@
+
+services:
+  victim:
+    build:
+      context: .
+      dockerfile: Dockerfile.victim
+    container_name: victim-server
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.10
+    privileged: true
+    volumes:
+      - ./pcaps:/pcaps
+
+  attacker:
+    build:
+      context: .
+      dockerfile: Dockerfile.attacker
+    container_name: attacker-machine
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.20
+    stdin_open: true
+    tty: true
+    privileged: true
+    # si tu veux que l'attaquant écrive aussi dans les pcaps
+    volumes:
+      - ./pcaps:/pcaps
+
+networks:
+  attack-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,22 @@
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Installer outils réseau, tshark, tcpdump, python et setcap (libcap)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      tshark tcpdump python3 python3-pip libcap2-bin && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Installer libs Python
+RUN pip3 install scapy pandas numpy
+
+# Copier script flowmeter
+COPY src/flowmeter.py /opt/flowmeter.py
+WORKDIR /opt
+
+# Donner permission à dumpcap pour capturer (si nécessaire)
+# dumpcap est installé par tshark; on donne les capabilities pour capture sans être root
+RUN if [ -f /usr/bin/dumpcap ]; then setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip' /usr/bin/dumpcap || true; fi
+
+# Par défaut rester en bash (tu pourras exec dedans)
+CMD ["bash", "-c", "tail -f /dev/null"]
